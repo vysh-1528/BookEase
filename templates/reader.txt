@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{{ title }} — BookEase Reader</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=DM+Sans:wght@300;400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --ink: #1a1208; --cream: #f5ede0; --paper: #faf6ef; --amber: #c8860a; --muted: #7a6a55; --border: #d9cbb8; }
+  body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 3rem; background: rgba(245,237,224,0.95); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; text-decoration: none; color: var(--ink); }
+  .logo span { color: var(--amber); }
+
+  /* READER TOOLBAR */
+  .toolbar { display: flex; align-items: center; justify-content: space-between; max-width: 800px; margin: 1.5rem auto 0; padding: 1rem 2rem; background: #fff; border: 1px solid var(--border); border-radius: 4px; flex-wrap: wrap; gap: 0.8rem; }
+  .toolbar-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; }
+  .toolbar-author { font-size: 0.8rem; color: var(--muted); }
+  .toolbar-controls { display: flex; align-items: center; gap: 0.6rem; }
+  .ctrl-btn { padding: 0.35rem 0.8rem; border: 1.5px solid var(--border); background: var(--paper); border-radius: 3px; cursor: pointer; font-size: 0.8rem; font-family: 'DM Sans', sans-serif; color: var(--ink); transition: all 0.2s; }
+  .ctrl-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .ctrl-btn.active { background: var(--ink); color: var(--cream); border-color: var(--ink); }
+
+  /* PROGRESS */
+  .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: var(--amber); z-index: 9999; transition: width 0.1s; width: 0%; }
+
+  /* READER CONTENT */
+  .reader-wrap { max-width: 800px; margin: 1.5rem auto 5rem; padding: 0 2rem; }
+  .reader-content { font-family: 'Lora', serif; font-size: 1.05rem; line-height: 1.9; color: #2d2010; background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 3rem; }
+  .reader-content p { margin-bottom: 1.2rem; }
+
+  /* FONT SIZE CONTROLS */
+  .font-sm .reader-content { font-size: 0.9rem; }
+  .font-md .reader-content { font-size: 1.05rem; }
+  .font-lg .reader-content { font-size: 1.2rem; }
+  .font-xl .reader-content { font-size: 1.4rem; }
+
+  /* THEMES */
+  .theme-light { --paper: #faf6ef; --ink: #1a1208; }
+  .theme-dark { background: #1a1a1a !important; }
+  .theme-dark .reader-content { background: #2a2a2a; color: #e8e0d0; border-color: #444; }
+  .theme-dark nav { background: rgba(30,30,30,0.95); border-color: #444; }
+  .theme-dark .toolbar { background: #2a2a2a; border-color: #444; color: #e8e0d0; }
+  .theme-sepia { background: #f4ecd8 !important; }
+  .theme-sepia .reader-content { background: #fdf6e3; color: #433422; }
+
+  /* STATS BAR */
+  .stats-bar { display: flex; gap: 1.5rem; max-width: 800px; margin: 0 auto 1rem; padding: 0 2rem; font-size: 0.78rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  @media(max-width:600px) { .reader-content { padding: 1.5rem; } nav { padding: 1rem 1.5rem; } }
+</style>
+</head>
+<body id="readerBody" class="theme-light font-md">
+
+<div class="progress-bar" id="progressBar"></div>
+
+<nav>
+  <a href="/" class="logo">📖 Book<span>Ease</span></a>
+  <div style="display:flex;gap:0.8rem;align-items:center">
+    {% if book_id is not none %}
+    <a href="/featured/{{ book_id }}"
+      style="padding:0.45rem 1rem;background:var(--amber);color:#fff;border-radius:2px;text-decoration:none;font-size:0.85rem">
+      ✨ Analyze This Book
+    </a>
+    {% endif %}
+    <a href="/"
+      style="padding:0.45rem 1rem;background:var(--ink);color:var(--cream);border-radius:2px;text-decoration:none;font-size:0.85rem">
+      ← Back
+    </a>
+  </div>
+</nav>
+
+<!-- TOOLBAR -->
+<div style="max-width:800px;margin:1.5rem auto 0;padding:0 2rem">
+  <div class="toolbar">
+    <div>
+      <div class="toolbar-title">{{ title }}</div>
+      <div class="toolbar-author">by {{ author }}</div>
+    </div>
+    <div class="toolbar-controls">
+      <!-- Font Size -->
+      <button class="ctrl-btn" onclick="setFont('sm')">A-</button>
+      <button class="ctrl-btn active" id="fontMd" onclick="setFont('md')">A</button>
+      <button class="ctrl-btn" onclick="setFont('lg')">A+</button>
+      <button class="ctrl-btn" onclick="setFont('xl')">A++</button>
+
+      <div style="width:1px;height:1.5rem;background:var(--border);margin:0 0.3rem"></div>
+
+      <!-- Themes -->
+      <button class="ctrl-btn active" id="themeLight" onclick="setTheme('light')" title="Light">☀️</button>
+      <button class="ctrl-btn" id="themeDark" onclick="setTheme('dark')" title="Dark">🌙</button>
+      <button class="ctrl-btn" id="themeSepia" onclick="setTheme('sepia')" title="Sepia">📜</button>
+
+      <div style="width:1px;height:1.5rem;background:var(--border);margin:0 0.3rem"></div>
+
+      <!-- TTS -->
+      <button class="ctrl-btn" onclick="toggleTTS()" id="ttsBtn">🔊 Read</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <span id="wordCount">Loading...</span>
+  <span id="readTime">Loading...</span>
+  <span id="charCount">Loading...</span>
+</div>
+
+<!-- READER -->
+<div class="reader-wrap">
+  <div class="reader-content" id="readerContent">
+    {% set paragraphs = content.split('\n') %}
+    {% for para in paragraphs %}
+      {% if para.strip() %}
+      <p>{{ para.strip() }}</p>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+// READING PROGRESS
+window.addEventListener('scroll', () => {
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = (winScroll / height) * 100;
+  document.getElementById('progressBar').style.width = scrolled + '%';
+});
+
+// WORD COUNT & READ TIME
+const content = document.getElementById('readerContent').textContent;
+const words = content.trim().split(/\s+/).length;
+const chars = content.length;
+const readMins = Math.ceil(words / 200);
+document.getElementById('wordCount').textContent = words.toLocaleString() + ' words';
+document.getElementById('readTime').textContent = '~' + readMins + ' min read';
+document.getElementById('charCount').textContent = chars.toLocaleString() + ' characters';
+
+// FONT SIZE
+function setFont(size) {
+  const body = document.getElementById('readerBody');
+  body.className = body.className.replace(/font-\w+/, '') + ' font-' + size;
+  document.querySelectorAll('.ctrl-btn').forEach(b => {
+    if (['sm','md','lg','xl'].some(s => b.textContent.includes('A') && b.onclick?.toString().includes(s))) {
+      b.classList.remove('active');
+    }
+  });
+}
+
+// THEMES
+function setTheme(theme) {
+  const body = document.getElementById('readerBody');
+  body.className = body.className.replace(/theme-\w+/, '') + ' theme-' + theme;
+  ['light','dark','sepia'].forEach(t => {
+    const btn = document.getElementById('theme' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) btn.classList.toggle('active', t === theme);
+  });
+}
+
+// TEXT TO SPEECH
+let ttsActive = false;
+let ttsUtterance = null;
+function toggleTTS() {
+  const btn = document.getElementById('ttsBtn');
+  if (ttsActive) {
+    window.speechSynthesis.cancel();
+    ttsActive = false;
+    btn.textContent = '🔊 Read';
+    btn.classList.remove('active');
+    return;
+  }
+  const text = document.getElementById('readerContent').textContent;
+  ttsUtterance = new SpeechSynthesisUtterance(text.substring(0, 5000));
+  ttsUtterance.rate = 0.9;
+  ttsUtterance.onend = () => {
+    ttsActive = false;
+    btn.textContent = '🔊 Read';
+    btn.classList.remove('active');
+  };
+  window.speechSynthesis.speak(ttsUtterance);
+  ttsActive = true;
+  btn.textContent = '⏹ Stop';
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookEase — Verify OTP</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --ink: #1a1208; --cream: #f5ede0; --paper: #faf6ef; --amber: #c8860a; --muted: #7a6a55; --border: #d9cbb8; }
+  body { background: var(--paper); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  nav { display: flex; align-items: center; padding: 1rem 3rem; background: rgba(245,237,224,0.9); border-bottom: 1px solid var(--border); }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; text-decoration: none; color: var(--ink); }
+  .logo span { color: var(--amber); }
+  .center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 8px 40px rgba(26,18,8,0.08); position: relative; }
+  .card::before { content: ''; position: absolute; top: 0; left: 2rem; right: 2rem; height: 3px; background: linear-gradient(90deg, var(--amber), #f0b429); }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; margin-bottom: 0.3rem; }
+  .card-sub { font-size: 0.875rem; color: var(--muted); margin-bottom: 1.8rem; }
+  .otp-info { background: rgba(200,134,10,0.08); border: 1px solid rgba(200,134,10,0.2); border-radius: 3px; padding: 0.8rem 1rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--amber); }
+  label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  input { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 3px; font-family: 'DM Mono', monospace; font-size: 1.5rem; text-align: center; letter-spacing: 0.5rem; background: var(--paper); color: var(--ink); margin-bottom: 1.2rem; }
+  input:focus { outline: none; border-color: var(--amber); }
+  .btn { width: 100%; padding: 0.9rem; background: var(--ink); color: var(--cream); border: none; cursor: pointer; font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; border-radius: 3px; transition: all 0.2s; }
+  .btn:hover { background: var(--amber); }
+  .alert { padding: 0.75rem 1rem; border-radius: 3px; margin-bottom: 1rem; font-size: 0.875rem; }
+  .alert-error { background: #fde8e8; border: 1px solid #f5c6c6; color: #c0392b; }
+  .alert-success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+  .link-row { text-align: center; margin-top: 1.2rem; font-size: 0.875rem; color: var(--muted); }
+  .link-row a { color: var(--amber); text-decoration: none; font-weight: 500; }
+  #timer { font-weight: 600; color: var(--amber); }
+</style>
+</head>
+<body>
+<nav><a href="/welcome" class="logo">📖 Book<span>Ease</span></a></nav>
+<div class="center">
+  <div class="card">
+    <div class="card-title">Enter OTP</div>
+    <p class="card-sub">Check your email for the 6-digit OTP</p>
+    <div class="otp-info">📧 OTP sent to <strong>{{ email }}</strong> — valid for <span id="timer">10:00</span></div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    <form method="POST">
+      <label>6-Digit OTP</label>
+      <input type="text" name="otp" placeholder="000000" maxlength="6" required autofocus/>
+      <button type="submit" class="btn">Verify OTP →</button>
+    </form>
+    <div class="link-row"><a href="/forgot_password">← Resend OTP</a></div>
+  </div>
+</div>
+<script>
+  let seconds = 600;
+  const timer = document.getElementById('timer');
+  const interval = setInterval(() => {
+    seconds--;
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    timer.textContent = `${m}:${s}`;
+    if (seconds <= 0) {
+      clearInterval(interval);
+      timer.textContent = 'Expired';
+      timer.style.color = '#c0392b';
+    }
+  }, 1000);
+</script>
+</body>
+</html>

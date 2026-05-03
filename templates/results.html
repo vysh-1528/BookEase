@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookEase - Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=DM+Mono:wght@400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#1a1208;--cream:#f5ede0;--paper:#faf6ef;--amber:#c8860a;--sage:#5a7a5c;--muted:#7a6a55;--border:#d9cbb8}
+body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 3rem;background:rgba(245,237,224,0.9);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900}
+.logo span{color:var(--amber)}
+.page{max-width:1100px;margin:0 auto;padding:2.5rem 2rem 5rem}
+.page-header{margin-bottom:2rem;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem}
+.page-header h1{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900}
+.page-header p{color:var(--muted);font-size:0.875rem;margin-top:0.3rem}
+.header-actions{display:flex;gap:0.7rem;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:2rem;overflow-x:auto}
+.tab{padding:0.75rem 1.4rem;background:transparent;border:none;cursor:pointer;font-size:0.875rem;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--amber);border-bottom-color:var(--amber)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.card{background:#fff;border:1px solid var(--border);border-radius:4px;padding:2rem;margin-bottom:1.5rem}
+.card-header{display:flex;align-items:center;gap:0.7rem;margin-bottom:1.2rem;padding-bottom:1rem;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-icon{font-size:1.3rem}
+.card-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+.card-sub{font-size:0.75rem;color:var(--muted);font-family:'DM Mono',monospace;margin-left:auto}
+.summary-text{font-size:0.95rem;line-height:1.9;color:#2d2010}
+.summary-sentence{display:inline;cursor:pointer;border-radius:2px;padding:1px 2px;transition:background 0.2s}
+.summary-sentence:hover{background:rgba(200,134,10,0.15)}
+.chars-grid{display:flex;flex-wrap:wrap;gap:0.7rem}
+.char-chip{display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0.9rem;background:var(--paper);border:1px solid var(--border);border-radius:3px}
+.char-avatar{width:2rem;height:2rem;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;color:#fff}
+.char-name{font-size:0.875rem;font-weight:500}
+.char-count{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted)}
+.sent-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.sent-card{text-align:center;padding:1.5rem 1rem;border:1px solid var(--border);border-radius:4px;background:var(--paper)}
+.sent-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;margin-bottom:0.2rem}
+.sent-label{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;font-family:'DM Mono',monospace}
+.mood-wrap{text-align:center;margin-top:1.5rem}
+.mood-badge{display:inline-block;padding:0.6rem 1.5rem;border-radius:3px;font-weight:700;font-size:1rem;background:rgba(200,134,10,0.1);border:1.5px solid rgba(200,134,10,0.4);color:#c8860a}
+.chart-wrap{position:relative;height:280px}
+.quiz-item{border:1px solid var(--border);border-radius:4px;margin-bottom:1.2rem;overflow:hidden}
+.quiz-q{padding:1rem 1.2rem;background:var(--paper);font-size:0.9rem;font-weight:600;border-bottom:1px solid var(--border)}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;padding:1rem 1.2rem}
+.opt-btn{padding:0.7rem 1rem;border:1.5px solid var(--border);border-radius:3px;background:#fff;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;font-size:0.875rem;transition:all 0.2s}
+.opt-btn:hover{border-color:var(--amber);background:rgba(200,134,10,0.05)}
+.feedback{display:none;padding:0.8rem 1.2rem;font-size:0.875rem;border-top:1px solid var(--border)}
+.review-card{border:1px solid var(--border);border-radius:4px;padding:1.2rem;margin-bottom:0.8rem;background:#fff}
+@media(max-width:600px){.sent-grid{grid-template-columns:1fr 1fr}.options-grid{grid-template-columns:1fr}.page{padding:1.5rem 1rem 3rem}nav{padding:1rem 1.5rem}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">📖 Book<span>Ease</span></div>
+  <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+    {% if session.user_id %}
+      <span style="font-size:0.875rem;color:var(--muted)">👤 {{ session.user_name }}</span>
+      <a href="/dashboard" style="padding:0.45rem 1rem;background:transparent;color:var(--ink);border:1.5px solid var(--border);border-radius:2px;text-decoration:none;font-size:0.85rem">📚 My Library</a>
+      {% if session.is_admin %}
+      <a href="/admin" style="padding:0.45rem 1rem;background:var(--amber);color:#fff;border-radius:2px;text-decoration:none;font-size:0.85rem">⚙️ Admin</a>
+      {% endif %}
+      <a href="/logout" style="padding:0.45rem 1rem;background:var(--ink);color:var(--cream);border-radius:2px;text-decoration:none;font-size:0.85rem">Logout</a>
+    {% else %}
+      <a href="/login" style="padding:0.45rem 1rem;background:transparent;color:var(--ink);border:1.5px solid var(--border);border-radius:2px;text-decoration:none;font-size:0.85rem">Login</a>
+      <a href="/register" style="padding:0.45rem 1rem;background:var(--ink);color:var(--cream);border-radius:2px;text-decoration:none;font-size:0.85rem">Register</a>
+    {% endif %}
+    <a href="/" style="padding:0.45rem 1rem;background:var(--ink);color:var(--cream);border-radius:2px;text-decoration:none;font-size:0.85rem">← New Analysis</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <h1>{{ novel_title if novel_title else 'Analysis Results' }}</h1>
+      <p>Persona: {{ persona | capitalize }} · {{ summary | length }} key sentences extracted</p>
+    </div>
+    <div class="header-actions">
+      {% if session.user_id and novel_id %}
+        <button onclick="toggleLike()" id="likeBtn"
+          style="padding:0.5rem 1.2rem;border:1.5px solid #e74c3c;background:transparent;color:#e74c3c;border-radius:3px;cursor:pointer;font-size:0.9rem;font-family:'DM Sans',sans-serif">
+          🤍 Like
+        </button>
+        <a href="/dashboard"
+          style="padding:0.5rem 1.2rem;border:1.5px solid var(--sage);background:transparent;color:var(--sage);border-radius:3px;font-size:0.9rem;text-decoration:none">
+          📚 Saved to Library
+        </a>
+      {% elif not session.user_id %}
+        <a href="/login"
+          style="padding:0.5rem 1.2rem;background:var(--ink);color:var(--cream);border-radius:3px;font-size:0.85rem;text-decoration:none">
+          🔑 Login to Save
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" data-tab="summary">📝 Summary</button>
+    <button class="tab" data-tab="characters">👥 Characters</button>
+    <button class="tab" data-tab="sentiment">💬 Sentiment</button>
+    <button class="tab" data-tab="arc">📈 Emotional Arc</button>
+    <button class="tab" data-tab="quiz">🧩 Quiz</button>
+    <button class="tab" data-tab="reviews">⭐ Reviews</button>
+  </div>
+
+  <!-- SUMMARY TAB -->
+  <div class="tab-content active" id="tab-summary">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📝</span>
+        <span class="card-title">Extractive Summary</span>
+        <span class="card-sub">Frequency-based NLP</span>
+        <button onclick="toggleSpeech()" id="audioBtn"
+          style="margin-left:0.5rem;background:var(--ink);color:var(--cream);border:none;border-radius:50%;width:2.2rem;height:2.2rem;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          🔊
+        </button>
+        <select id="langSelect" onchange="translateSummary()"
+          style="margin-left:0.5rem;padding:0.3rem 0.6rem;border:1.5px solid var(--border);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:0.8rem;background:var(--paper);color:var(--ink);cursor:pointer">
+          <option value="en">🌐 English</option>
+          <option value="te">🇮🇳 Telugu</option>
+          <option value="hi">🇮🇳 Hindi</option>
+          <option value="ta">🇮🇳 Tamil</option>
+          <option value="fr">🇫🇷 French</option>
+          <option value="es">🇪🇸 Spanish</option>
+          <option value="de">🇩🇪 German</option>
+        </select>
+        <span id="translateStatus" style="font-size:0.75rem;color:var(--muted);margin-left:0.3rem"></span>
+      </div>
+      <div class="summary-text" id="summaryText">
+        {% for sentence in summary %}
+        <span class="summary-sentence">{{ sentence }} </span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARACTERS TAB -->
+  <div class="tab-content" id="tab-characters">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">👥</span>
+        <span class="card-title">Key Characters</span>
+        <span class="card-sub">Ranked by mentions</span>
+      </div>
+      <div class="chars-grid">
+        {% set colors = ["#c8860a","#1a1208","#5a7a5c","#8b3a0f","#2c3e50","#7d3c98","#1a5276","#e74c3c","#e67e22","#16a085"] %}
+        {% for name, count in characters %}
+        <div class="char-chip">
+          <div class="char-avatar" style="background:{{ colors[loop.index0 % colors|length] }}">{{ name[0] }}</div>
+          <div>
+            <div class="char-name">{{ name }}</div>
+            <div class="char-count">{{ count }} mentions</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- SENTIMENT TAB -->
+  <div class="tab-content" id="tab-sentiment">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">💬</span>
+        <span class="card-title">VADER Sentiment Analysis</span>
+        <span class="card-sub">Full novel score</span>
+      </div>
+      <div class="sent-grid">
+        <div class="sent-card">
+          <div class="sent-val" style="color:#27ae60">{{ "%.3f"|format(sentiment.pos) }}</div>
+          <div class="sent-label">Positive</div>
+        </div>
+        <div class="sent-card">
+          <div class="sent-val" style="color:#c0392b">{{ "%.3f"|format(sentiment.neg) }}</div>
+          <div class="sent-label">Negative</div>
+        </div>
+        <div class="sent-card">
+          <div class="sent-val" style="color:#7f8c8d">{{ "%.3f"|format(sentiment.neu) }}</div>
+          <div class="sent-label">Neutral</div>
+        </div>
+        <div class="sent-card">
+          <div class="sent-val" style="color:#c8860a">{{ "%.3f"|format(sentiment.compound) }}</div>
+          <div class="sent-label">Compound</div>
+        </div>
+      </div>
+      <div class="mood-wrap">
+        <span class="mood-badge">Overall Story Mood: {{ mood }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMOTIONAL ARC TAB -->
+  <div class="tab-content" id="tab-arc">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">📈</span>
+        <span class="card-title">Emotional Arc</span>
+        <span class="card-sub">VADER compound score per chunk</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="arcChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ TAB -->
+  <div class="tab-content" id="tab-quiz">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">🧩</span>
+        <span class="card-title">Comprehension Quiz</span>
+        <span class="card-sub">MCQ — Select your answer</span>
+        <button onclick="resetQuiz()"
+          style="margin-left:auto;padding:0.3rem 0.8rem;background:transparent;border:1.5px solid var(--border);border-radius:3px;cursor:pointer;font-size:0.8rem;color:var(--muted)">
+          🔄 Reset
+        </button>
+      </div>
+
+      <div id="quizScore" style="display:none;text-align:center;padding:1rem;margin-bottom:1rem;background:rgba(200,134,10,0.08);border:1px solid rgba(200,134,10,0.2);border-radius:4px;font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--amber)"></div>
+
+      {% for item in quiz %}
+      <div class="quiz-item" id="qitem{{ loop.index0 }}">
+        <div class="quiz-q">Q{{ loop.index }}. {{ item.question }}</div>
+        <div class="options-grid">
+          {% for option in item.options %}
+          <button class="opt-btn"
+            onclick="selectAnswer({{ loop.index0 - 1 }}, {{ loop.index0 - 1 }}, {{ item.correct }}, this)">
+            <span style="font-weight:600;color:var(--amber);margin-right:0.5rem">{{ ['A','B','C','D'][loop.index0 - 1] }}.</span>
+            {{ option }}
+          </button>
+          {% endfor %}
+        </div>
+        <div class="feedback" id="feedback{{ loop.index0 - 1 }}"></div>
+      </div>
+      {% endfor %}
+
+      <button onclick="submitQuiz()" id="submitQuizBtn"
+        style="width:100%;padding:0.9rem;background:var(--ink);color:var(--cream);border:none;border-radius:3px;cursor:pointer;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;margin-top:0.5rem">
+        Submit Answers →
+      </button>
+    </div>
+  </div>
+
+  <!-- REVIEWS TAB -->
+  <div class="tab-content" id="tab-reviews">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">⭐</span>
+        <span class="card-title">Reader Reviews</span>
+        <span class="card-sub">Community ratings</span>
+      </div>
+
+      {% if session.user_id %}
+      <div style="background:var(--paper);border:1px solid var(--border);border-radius:4px;padding:1.5rem;margin-bottom:1.5rem">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;margin-bottom:1rem">Write a Review</div>
+        <form method="POST" action="/review/{{ novel_title }}">
+          <div style="margin-bottom:1rem">
+            <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">Your Rating</div>
+            <div style="display:flex;gap:0.4rem">
+              {% for i in range(1,6) %}
+              <span id="star{{ i }}" style="font-size:2rem;cursor:pointer;color:#c8860a;transition:color 0.2s;user-select:none">★</span>
+              {% endfor %}
+            </div>
+            <input type="hidden" name="rating" id="ratingInput" value="5"/>
+          </div>
+          <textarea name="review_text" placeholder="Share your thoughts about this novel summary..." required
+            style="width:100%;padding:0.8rem;border:1.5px solid var(--border);border-radius:3px;font-family:'DM Sans',sans-serif;font-size:0.9rem;resize:vertical;min-height:100px;background:#fff;color:var(--ink)"></textarea>
+          <button type="submit"
+            style="margin-top:0.8rem;padding:0.7rem 1.5rem;background:var(--ink);color:var(--cream);border:none;border-radius:3px;cursor:pointer;font-family:'Playfair Display',serif;font-weight:700;font-size:0.9rem">
+            Post Review →
+          </button>
+        </form>
+      </div>
+      {% else %}
+      <div style="text-align:center;padding:1rem;margin-bottom:1.5rem;background:var(--paper);border:1px dashed var(--border);border-radius:4px;font-size:0.875rem">
+        <a href="/login" style="color:var(--amber);font-weight:600">Login</a> to write a review
+      </div>
+      {% endif %}
+
+      <div id="reviewsList">
+        <div style="text-align:center;color:var(--muted);font-size:0.875rem;padding:2rem">Loading reviews...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── TABS ──────────────────────────────────────────────
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+    if (tab.dataset.tab === 'reviews') loadReviews();
+  });
+});
+
+// ── CHART ─────────────────────────────────────────────
+const arcData = {{ arc | tojson }};
+new Chart(document.getElementById("arcChart"), {
+  type: "bar",
+  data: {
+    labels: arcData.map((_, i) => "Part " + (i + 1)),
+    datasets: [
+      { label: "Sentiment", data: arcData,
+        backgroundColor: arcData.map(v => v >= 0 ? "rgba(39,174,96,0.6)" : "rgba(192,57,43,0.6)"),
+        borderRadius: 3 },
+      { type: "line", label: "Trend", data: arcData,
+        borderColor: "#c8860a", borderWidth: 2.5,
+        pointBackgroundColor: "#c8860a", pointRadius: 4, tension: 0.4, fill: false }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { min: -1, max: 1, ticks: { font: { family: "DM Mono", size: 10 } }, grid: { color: "rgba(0,0,0,0.05)" } },
+      x: { grid: { display: false }, ticks: { font: { family: "DM Mono", size: 9 } } }
+    }
+  }
+});
+
+// ── TTS ───────────────────────────────────────────────
+let speaking = false;
+function toggleSpeech() {
+  const btn = document.getElementById('audioBtn');
+  if (speaking) {
+    window.speechSynthesis.cancel();
+    speaking = false;
+    btn.textContent = '🔊';
+    btn.style.background = 'var(--ink)';
+    document.querySelectorAll('.summary-sentence').forEach(s => s.style.background = '');
+    return;
+  }
+  speaking = true;
+  btn.textContent = '⏹';
+  btn.style.background = 'var(--amber)';
+  readSentence(0);
+}
+function readSentence(index) {
+  const spans = document.querySelectorAll('.summary-sentence');
+  if (index >= spans.length) {
+    speaking = false;
+    document.getElementById('audioBtn').textContent = '🔊';
+    document.getElementById('audioBtn').style.background = 'var(--ink)';
+    document.querySelectorAll('.summary-sentence').forEach(s => s.style.background = '');
+    return;
+  }
+  document.querySelectorAll('.summary-sentence').forEach(s => s.style.background = '');
+  spans[index].style.background = 'rgba(200,134,10,0.3)';
+  spans[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const u = new SpeechSynthesisUtterance(spans[index].textContent.trim());
+  u.rate = 0.88; u.pitch = 1.05;
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = ['Samantha','Karen','Google US English','Microsoft Zira'];
+  for (let name of preferred) {
+    const v = voices.find(v => v.name.includes(name));
+    if (v) { u.voice = v; break; }
+  }
+  u.onend = () => { if (speaking) readSentence(index + 1); };
+  window.speechSynthesis.speak(u);
+}
+window.speechSynthesis.getVoices();
+
+// ── TRANSLATION ───────────────────────────────────────
+const originalSummary = {{ summary | tojson }};
+async function translateSummary() {
+  const lang = document.getElementById('langSelect').value;
+  const status = document.getElementById('translateStatus');
+  const spans = document.querySelectorAll('.summary-sentence');
+  if (lang === 'en') {
+    spans.forEach((span, i) => span.textContent = originalSummary[i] + ' ');
+    status.textContent = '';
+    return;
+  }
+  status.textContent = '⏳ Translating...';
+  try {
+    const translations = await Promise.all(
+      originalSummary.map(async sentence => {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(sentence)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        return data[0].map(item => item[0]).join('');
+      })
+    );
+    spans.forEach((span, i) => {
+      if (translations[i]) span.textContent = translations[i] + ' ';
+    });
+    status.textContent = '✅ Translated';
+  } catch (e) {
+    status.textContent = '❌ Failed';
+  }
+}
+
+// ── LIKE ──────────────────────────────────────────────
+{% if novel_id %}
+function toggleLike() {
+  const btn = document.getElementById('likeBtn');
+  fetch('/like/{{ novel_id }}', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.action === 'liked') {
+        btn.textContent = '❤️ Liked';
+        btn.style.background = 'rgba(231,76,60,0.1)';
+      } else {
+        btn.textContent = '🤍 Like';
+        btn.style.background = 'transparent';
+      }
+    });
+}
+{% endif %}
+
+// ── MCQ QUIZ ──────────────────────────────────────────
+const quizData = {{ quiz | tojson }};
+let userAnswers = new Array(quizData.length).fill(null);
+let quizSubmitted = false;
+
+function selectAnswer(qIdx, oIdx, correct, btn) {
+  if (quizSubmitted) return;
+  const qitem = document.getElementById('qitem' + qIdx);
+  qitem.querySelectorAll('.opt-btn').forEach(b => {
+    b.style.borderColor = 'var(--border)';
+    b.style.background = '#fff';
+  });
+  btn.style.borderColor = 'var(--amber)';
+  btn.style.background = 'rgba(200,134,10,0.08)';
+  userAnswers[qIdx] = oIdx;
+}
+
+function submitQuiz() {
+  if (quizSubmitted) return;
+  let score = 0;
+  quizData.forEach((q, qIdx) => {
+    const feedback = document.getElementById('feedback' + qIdx);
+    const qitem = document.getElementById('qitem' + qIdx);
+    const buttons = qitem.querySelectorAll('.opt-btn');
+    const userAns = userAnswers[qIdx];
+    buttons.forEach((btn, oIdx) => {
+      if (oIdx === q.correct) {
+        btn.style.borderColor = '#27ae60';
+        btn.style.background = 'rgba(39,174,96,0.1)';
+      }
+      if (userAns === oIdx && oIdx !== q.correct) {
+        btn.style.borderColor = '#c0392b';
+        btn.style.background = 'rgba(192,57,43,0.1)';
+      }
+    });
+    if (userAns === q.correct) {
+      score++;
+      feedback.innerHTML = '✅ Correct! ' + q.answer;
+      feedback.style.background = 'rgba(39,174,96,0.05)';
+      feedback.style.color = '#27ae60';
+    } else if (userAns === null) {
+      feedback.innerHTML = '⚠️ Not answered. Correct: ' + q.options[q.correct];
+      feedback.style.background = 'rgba(200,134,10,0.05)';
+      feedback.style.color = 'var(--amber)';
+    } else {
+      feedback.innerHTML = '❌ Wrong! Correct: ' + q.options[q.correct];
+      feedback.style.background = 'rgba(192,57,43,0.05)';
+      feedback.style.color = '#c0392b';
+    }
+    feedback.style.display = 'block';
+  });
+  quizSubmitted = true;
+  const pct = Math.round(score / quizData.length * 100);
+  const scoreDiv = document.getElementById('quizScore');
+  scoreDiv.textContent = `Score: ${score}/${quizData.length} (${pct}%) ${pct >= 80 ? '🎉 Excellent!' : pct >= 60 ? '👍 Good job!' : '📖 Keep reading!'}`;
+  scoreDiv.style.display = 'block';
+  document.getElementById('submitQuizBtn').style.display = 'none';
+}
+
+function resetQuiz() {
+  quizSubmitted = false;
+  userAnswers = new Array(quizData.length).fill(null);
+  quizData.forEach((_, qIdx) => {
+    document.getElementById('qitem' + qIdx).querySelectorAll('.opt-btn').forEach(btn => {
+      btn.style.borderColor = 'var(--border)';
+      btn.style.background = '#fff';
+    });
+    document.getElementById('feedback' + qIdx).style.display = 'none';
+  });
+  document.getElementById('quizScore').style.display = 'none';
+  document.getElementById('submitQuizBtn').style.display = 'block';
+}
+
+// ── STAR RATING ───────────────────────────────────────
+function setRating(val) {
+  document.getElementById('ratingInput').value = val;
+  for (let i = 1; i <= 5; i++) {
+    const s = document.getElementById('star' + i);
+    if (s) s.style.color = i <= val ? '#c8860a' : '#d9cbb8';
+  }
+}
+for (let i = 1; i <= 5; i++) {
+  const s = document.getElementById('star' + i);
+  if (s) {
+    s.addEventListener('mouseover', () => {
+      for (let j = 1; j <= 5; j++) {
+        const st = document.getElementById('star' + j);
+        if (st) st.style.color = j <= i ? '#f0b429' : '#d9cbb8';
+      }
+    });
+    s.addEventListener('mouseout', () => {
+      setRating(parseInt(document.getElementById('ratingInput').value));
+    });
+    s.addEventListener('click', () => setRating(i));
+  }
+}
+setRating(5);
+
+// ── REVIEWS ───────────────────────────────────────────
+function loadReviews() {
+  const title = encodeURIComponent("{{ novel_title }}");
+  fetch('/get_reviews/' + title)
+    .then(r => r.json())
+    .then(data => {
+      const list = document.getElementById('reviewsList');
+      if (!data.reviews || data.reviews.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:2rem;font-size:0.875rem">No reviews yet. Be the first to review!</div>';
+        return;
+      }
+      list.innerHTML = data.reviews.map(r => `
+        <div class="review-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem">
+            <div style="display:flex;align-items:center;gap:0.8rem">
+              <div style="width:2rem;height:2rem;border-radius:50%;background:var(--ink);color:var(--cream);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem">${r.user_name[0].toUpperCase()}</div>
+              <div>
+                <div style="font-weight:600;font-size:0.875rem">${r.user_name}</div>
+                <div style="font-size:0.72rem;color:var(--muted)">${r.created_at.split('T')[0]}</div>
+              </div>
+            </div>
+            <div style="color:#c8860a;font-size:1.1rem">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+          </div>
+          <div style="font-size:0.9rem;color:#2d2010;line-height:1.7">${r.review_text}</div>
+        </div>
+      `).join('');
+    });
+}
+</script>
+</body>
+</html>

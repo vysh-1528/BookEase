@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookEase — My Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=DM+Mono:wght@400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --ink: #1a1208; --cream: #f5ede0; --paper: #faf6ef; --amber: #c8860a; --sage: #5a7a5c; --muted: #7a6a55; --border: #d9cbb8; }
+  body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 3rem; background: rgba(245,237,224,0.9); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; text-decoration: none; color: var(--ink); }
+  .logo span { color: var(--amber); }
+  .page { max-width: 1100px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; margin-bottom: 0.3rem; }
+  .page-sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 2rem; }
+  .alert { padding: 0.75rem 1rem; border-radius: 3px; margin-bottom: 1rem; font-size: 0.875rem; }
+  .alert-success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+  .alert-error { background: #fde8e8; border: 1px solid #f5c6c6; color: #c0392b; }
+  .novels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+  .novel-card { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; transition: all 0.2s; }
+  .novel-card:hover { box-shadow: 0 6px 20px rgba(26,18,8,0.1); transform: translateY(-2px); }
+  .novel-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .novel-date { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); margin-bottom: 0.6rem; }
+  .novel-mood { display: inline-block; padding: 0.2rem 0.6rem; background: rgba(200,134,10,0.1); border: 1px solid rgba(200,134,10,0.3); border-radius: 2px; font-size: 0.75rem; color: var(--amber); margin-bottom: 0.8rem; }
+  .novel-summary { font-size: 0.825rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
+  .novel-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 0.8rem; border-top: 1px solid var(--border); }
+  .like-count { font-size: 0.8rem; color: var(--muted); }
+  .empty-state { text-align: center; padding: 5rem 2rem; }
+  .empty-icon { font-size: 4rem; margin-bottom: 1rem; }
+  .empty-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .empty-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .btn-primary { display: inline-block; padding: 0.8rem 2rem; background: var(--ink); color: var(--cream); border-radius: 3px; text-decoration: none; font-family: 'Playfair Display', serif; font-weight: 700; transition: all 0.2s; }
+  .btn-primary:hover { background: var(--amber); }
+  .trending-section { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
+  .trending-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; }
+  .trending-item { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 1rem; background: var(--paper); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 0.5rem; }
+  .trending-rank { width: 1.6rem; height: 1.6rem; background: var(--amber); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+  .trending-name { font-size: 0.9rem; font-weight: 500; margin-left: 0.8rem; flex: 1; }
+  .trending-count { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); background: rgba(200,134,10,0.1); padding: 0.2rem 0.6rem; border-radius: 2px; }
+  @media(max-width:768px) { .novels-grid { grid-template-columns: 1fr; } nav { padding: 1rem 1.5rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">📖 Book<span>Ease</span></a>
+  <div style="display:flex;align-items:center;gap:1rem">
+    <span style="font-size:0.875rem;color:var(--muted)">👤 {{ session.user_name }}</span>
+    <a href="/" style="padding:0.45rem 1rem;background:transparent;color:var(--ink);border:1.5px solid var(--border);border-radius:2px;text-decoration:none;font-size:0.85rem">+ New Analysis</a>
+    {% if session.is_admin %}
+    <a href="/admin" style="padding:0.45rem 1rem;background:var(--amber);color:#fff;border-radius:2px;text-decoration:none;font-size:0.85rem">⚙️ Admin</a>
+    {% endif %}
+    <a href="/logout" style="padding:0.45rem 1rem;background:var(--ink);color:var(--cream);border-radius:2px;text-decoration:none;font-size:0.85rem">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-title">My Library 📚</div>
+  <p class="page-sub">All your analyzed novels saved in one place</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- TRENDING -->
+  {% if trending %}
+  <div class="trending-section">
+    <div class="trending-title">🔥 Most Analyzed Novels</div>
+    {% for item in trending %}
+    <div class="trending-item">
+      <div style="display:flex;align-items:center;flex:1">
+        <div class="trending-rank">{{ loop.index }}</div>
+        <span class="trending-name">{{ item.title }}</span>
+      </div>
+      <span class="trending-count">{{ item.analyze_count }}x analyzed</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- NOVELS GRID -->
+  {% if novels %}
+  <div class="novels-grid">
+    {% for novel in novels %}
+    <div class="novel-card">
+      <div class="novel-title">{{ novel.title }}</div>
+      <div class="novel-date">{{ novel.created_at.strftime('%b %d, %Y') }}</div>
+      {% if novel.mood %}
+      <div class="novel-mood">{{ novel.mood }}</div>
+      {% endif %}
+      {% if novel.summary %}
+      <div class="novel-summary">{{ novel.summary[:150] }}...</div>
+      {% endif %}
+      <div class="novel-footer">
+        <span class="like-count">
+          {% if novel.user_liked %}❤️{% else %}🤍{% endif %}
+          {{ novel.like_count }} likes
+        </span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📭</div>
+    <div class="empty-title">No novels analyzed yet</div>
+    <p class="empty-sub">Upload a novel or pick a featured book to get started!</p>
+    <a href="/" class="btn-primary">Start Analyzing →</a>
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookEase — Register</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --ink: #1a1208; --cream: #f5ede0; --paper: #faf6ef; --amber: #c8860a; --muted: #7a6a55; --border: #d9cbb8; --red: #c0392b; --sage: #5a7a5c; }
+  body { background: var(--paper); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  nav { display: flex; align-items: center; padding: 1rem 3rem; background: rgba(245,237,224,0.9); border-bottom: 1px solid var(--border); }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; text-decoration: none; color: var(--ink); }
+  .logo span { color: var(--amber); }
+  .center { flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; }
+  .card { background: #fff; border: 1px solid var(--border); border-radius: 6px; padding: 2.5rem; width: 100%; max-width: 440px; box-shadow: 0 8px 40px rgba(26,18,8,0.08); position: relative; }
+  .card::before { content: ''; position: absolute; top: 0; left: 2rem; right: 2rem; height: 3px; background: linear-gradient(90deg, var(--amber), #f0b429); }
+  .card-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; margin-bottom: 0.3rem; }
+  .card-sub { font-size: 0.875rem; color: var(--muted); margin-bottom: 1.8rem; }
+  .form-group { margin-bottom: 1.2rem; }
+  label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .input-wrap { position: relative; }
+  input { width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border); border-radius: 3px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; background: var(--paper); color: var(--ink); transition: border 0.2s; }
+  input:focus { outline: none; border-color: var(--amber); }
+  input.error-input { border-color: var(--red); }
+  .eye-btn { position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--muted); padding: 0.2rem; transition: color 0.2s; }
+  .eye-btn:hover { color: var(--ink); }
+  .password-input { padding-right: 2.8rem !important; }
+  .strength-bar { height: 4px; border-radius: 2px; margin-top: 0.4rem; background: var(--border); overflow: hidden; }
+  .strength-fill { height: 100%; border-radius: 2px; transition: all 0.3s; width: 0%; }
+  .strength-text { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
+  .match-msg { font-size: 0.75rem; margin-top: 0.3rem; }
+  .match-ok { color: var(--sage); }
+  .match-err { color: var(--red); }
+  .btn { width: 100%; padding: 0.9rem; background: var(--ink); color: var(--cream); border: none; cursor: pointer; font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; border-radius: 3px; margin-top: 0.5rem; transition: all 0.2s; }
+  .btn:hover { background: var(--amber); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; background: var(--ink); }
+  .link-row { text-align: center; margin-top: 1.2rem; font-size: 0.875rem; color: var(--muted); }
+  .link-row a { color: var(--amber); text-decoration: none; font-weight: 500; }
+  .alert { padding: 0.75rem 1rem; border-radius: 3px; margin-bottom: 1rem; font-size: 0.875rem; }
+  .alert-error { background: #fde8e8; border: 1px solid #f5c6c6; color: var(--red); }
+  .alert-success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">📖 Book<span>Ease</span></a>
+</nav>
+<div class="center">
+  <div class="card">
+    <div class="card-title">Create account</div>
+    <p class="card-sub">Join BookEase and start reading smarter</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" id="registerForm">
+
+      <!-- USERNAME -->
+      <div class="form-group">
+        <label>Username</label>
+        <div class="input-wrap">
+          <input type="text" name="name" id="nameInput"
+            placeholder="Your username" required
+            oninput="validateForm()"/>
+        </div>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="form-group">
+        <label>Email ID</label>
+        <div class="input-wrap">
+          <input type="email" name="email" id="emailInput"
+            placeholder="you@email.com" required
+            oninput="validateForm()"/>
+        </div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input type="password" name="password" id="passwordInput"
+            placeholder="Min 6 characters" required
+            class="password-input" oninput="checkStrength(); checkMatch(); validateForm()"/>
+          <button type="button" class="eye-btn" onclick="toggleVisibility('passwordInput', 'eyeIcon1')" id="eyeIcon1">👁️</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+        <div class="strength-text" id="strengthText"></div>
+      </div>
+
+      <!-- CONFIRM PASSWORD -->
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <div class="input-wrap">
+          <input type="password" name="confirm_password" id="confirmInput"
+            placeholder="Re-enter password" required
+            class="password-input" oninput="checkMatch(); validateForm()"/>
+          <button type="button" class="eye-btn" onclick="toggleVisibility('confirmInput', 'eyeIcon2')" id="eyeIcon2">👁️</button>
+        </div>
+        <div class="match-msg" id="matchMsg"></div>
+      </div>
+
+      <button type="submit" class="btn" id="submitBtn" disabled>
+        Create Account →
+      </button>
+    </form>
+    <div class="link-row">Already have an account? <a href="/login">Login here</a></div>
+  </div>
+</div>
+<script>
+  // Toggle password visibility
+  function toggleVisibility(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+
+  // Password strength checker
+  function checkStrength() {
+    const val = document.getElementById('passwordInput').value;
+    const fill = document.getElementById('strengthFill');
+    const text = document.getElementById('strengthText');
+    let strength = 0;
+    if (val.length >= 6) strength++;
+    if (val.length >= 10) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+    const levels = [
+      { w: '0%',   color: '',          label: '' },
+      { w: '25%',  color: '#e74c3c',   label: '🔴 Weak' },
+      { w: '50%',  color: '#f0b429',   label: '🟡 Fair' },
+      { w: '75%',  color: '#f0b429',   label: '🟠 Good' },
+      { w: '90%',  color: '#27ae60',   label: '🟢 Strong' },
+      { w: '100%', color: '#1a6b3a',   label: '💪 Very Strong' },
+    ];
+    const l = levels[strength];
+    fill.style.width = l.w;
+    fill.style.background = l.color;
+    text.textContent = l.label;
+  }
+
+  // Confirm password match checker
+  function checkMatch() {
+    const pass = document.getElementById('passwordInput').value;
+    const conf = document.getElementById('confirmInput').value;
+    const msg = document.getElementById('matchMsg');
+    const confInput = document.getElementById('confirmInput');
+    if (conf === '') { msg.textContent = ''; return; }
+    if (pass === conf) {
+      msg.textContent = '✅ Passwords match';
+      msg.className = 'match-msg match-ok';
+      confInput.classList.remove('error-input');
+    } else {
+      msg.textContent = '❌ Passwords do not match';
+      msg.className = 'match-msg match-err';
+      confInput.classList.add('error-input');
+    }
+  }
+
+  // Enable submit button only when form is valid
+  function validateForm() {
+    const name = document.getElementById('nameInput').value.trim();
+    const email = document.getElementById('emailInput').value.trim();
+    const pass = document.getElementById('passwordInput').value;
+    const conf = document.getElementById('confirmInput').value;
+    const btn = document.getElementById('submitBtn');
+    const isValid = name.length > 0 && 
+                    email.includes('@') && 
+                    pass.length >= 6 && 
+                    pass === conf;
+    btn.disabled = !isValid;
+    if (isValid) {
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+    }
+  }
+
+  // Call validateForm on every input field
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', validateForm);
+  });
+
+  // Run once on load
+  validateForm();
+</script>
+</body>
+</html>

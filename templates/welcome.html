@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookEase — Smart Novel Summarization</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1208; --cream: #f5ede0; --paper: #faf6ef;
+    --amber: #c8860a; --amber-light: #f0b429;
+    --sage: #5a7a5c; --muted: #7a6a55; --border: #d9cbb8;
+  }
+  body { background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem; background: rgba(245,237,224,0.95);
+    backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; text-decoration: none; color: var(--ink); }
+  .logo span { color: var(--amber); }
+  .nav-btns { display: flex; gap: 0.8rem; }
+  .btn-outline { padding: 0.5rem 1.2rem; border: 1.5px solid var(--border); background: transparent; color: var(--ink); border-radius: 3px; text-decoration: none; font-size: 0.875rem; transition: all 0.2s; }
+  .btn-outline:hover { border-color: var(--amber); color: var(--amber); }
+  .btn-solid { padding: 0.5rem 1.2rem; background: var(--ink); color: var(--cream); border-radius: 3px; text-decoration: none; font-size: 0.875rem; transition: all 0.2s; }
+  .btn-solid:hover { background: var(--amber); }
+
+  /* HERO */
+  .hero {
+    max-width: 900px; margin: 0 auto;
+    padding: 7rem 2rem 5rem;
+    text-align: center;
+  }
+  .hero-tag {
+    display: inline-block; padding: 0.35rem 1rem;
+    background: rgba(200,134,10,0.1); border: 1px solid rgba(200,134,10,0.3);
+    border-radius: 20px; color: var(--amber);
+    font-size: 0.8rem; font-weight: 500; margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem; font-weight: 900; line-height: 1.1;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1 em { font-style: italic; color: var(--amber); }
+  .hero p {
+    font-size: 1.1rem; color: var(--muted);
+    line-height: 1.8; max-width: 600px;
+    margin: 0 auto 2.5rem;
+  }
+  .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .hero-btn-primary {
+    padding: 0.9rem 2.5rem; background: var(--ink); color: var(--cream);
+    border-radius: 3px; text-decoration: none;
+    font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .hero-btn-primary:hover { background: var(--amber); }
+  .hero-btn-secondary {
+    padding: 0.9rem 2.5rem; background: transparent; color: var(--ink);
+    border: 1.5px solid var(--border); border-radius: 3px; text-decoration: none;
+    font-size: 1rem; transition: all 0.2s;
+  }
+  .hero-btn-secondary:hover { border-color: var(--amber); color: var(--amber); }
+
+  /* STATS */
+  .stats {
+    display: flex; justify-content: center; gap: 4rem;
+    padding: 2rem; border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: #fff; margin: 0;
+  }
+  .stat-item { text-align: center; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 900; color: var(--amber); }
+  .stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+
+  /* FEATURES */
+  .features { max-width: 1100px; margin: 0 auto; padding: 5rem 2rem; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; text-align: center; margin-bottom: 0.5rem; }
+  .section-sub { text-align: center; color: var(--muted); font-size: 0.95rem; margin-bottom: 3rem; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .feature-card {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 4px; padding: 2rem;
+    transition: all 0.25s; position: relative; overflow: hidden;
+  }
+  .feature-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--amber-light));
+    transform: scaleX(0); transition: transform 0.3s;
+  }
+  .feature-card:hover::before { transform: scaleX(1); }
+  .feature-card:hover { box-shadow: 0 8px 30px rgba(26,18,8,0.1); }
+  .feature-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .feature-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .feature-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+
+  /* CTA */
+  .cta {
+    background: var(--ink); color: var(--cream);
+    text-align: center; padding: 5rem 2rem;
+  }
+  .cta h2 { font-family: 'Playfair Display', serif; font-size: 2.5rem; font-weight: 900; margin-bottom: 1rem; }
+  .cta p { color: rgba(245,237,224,0.7); font-size: 1rem; margin-bottom: 2rem; }
+  .cta-btn {
+    display: inline-block; padding: 1rem 3rem;
+    background: var(--amber); color: #fff;
+    border-radius: 3px; text-decoration: none;
+    font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700;
+    transition: all 0.2s;
+  }
+  .cta-btn:hover { background: var(--amber-light); }
+
+  /* FOOTER */
+  footer {
+    text-align: center; padding: 1.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem; color: var(--muted);
+  }
+
+  @media(max-width:768px) {
+    nav { padding: 1rem 1.5rem; }
+    .hero h1 { font-size: 2.5rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .stats { gap: 2rem; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/welcome" class="logo">📖 Book<span>Ease</span></a>
+  <div class="nav-btns">
+    <a href="/login" class="btn-outline">Login</a>
+    <a href="/register" class="btn-solid">Get Started →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">✨ AI-Powered Novel Analysis Platform</div>
+<h1>Read <em>smarter,</em><br>not longer.</h1>
+<p class="desc">Upload any novel or search from <strong>60,000+ classics</strong>. BookEase uses NLP to extract characters, generate summaries, analyze sentiment, create quizzes and chart emotional arcs — all in seconds.</p>
+<div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:2rem">
+  <div style="text-align:center">
+    <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--amber)">60K+</div>
+    <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">Novels</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--amber)">7</div>
+    <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">Features</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--amber)">30s</div>
+    <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">Analysis</div>
+  </div>
+  <div style="text-align:center">
+    <div style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--amber)">Free</div>
+    <div style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em">Forever</div>
+  </div>
+</div>
+  <div class="hero-btns">
+    <a href="/register" class="hero-btn-primary">Start Reading Smarter →</a>
+    <a href="/login" class="hero-btn-secondary">I have an account</a>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat-item">
+    <div class="stat-num">60,000+</div>
+    <div class="stat-label">Novels Available</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">7</div>
+    <div class="stat-label">Analysis Features</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">30s</div>
+    <div class="stat-label">Average Analysis Time</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">100%</div>
+    <div class="stat-label">Free to Use</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="features">
+  <h2 class="section-title">Everything you need</h2>
+  <p class="section-sub">One platform for complete novel analysis</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📝</div>
+      <div class="feature-title">Smart Summarization</div>
+      <div class="feature-desc">NLP-powered extractive summarization picks the most important sentences. Choose brief, medium or detailed length.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <div class="feature-title">Character Extraction</div>
+      <div class="feature-desc">Automatically identifies and ranks all key characters by number of mentions throughout the novel.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <div class="feature-title">Sentiment Analysis</div>
+      <div class="feature-desc">VADER sentiment analysis gives positive, negative, neutral and compound scores for the entire novel.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📈</div>
+      <div class="feature-title">Emotional Arc</div>
+      <div class="feature-desc">Visual chart showing how the emotional tone shifts across 5 parts of the novel from beginning to end.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧩</div>
+      <div class="feature-title">Auto Quiz</div>
+      <div class="feature-desc">Comprehension questions auto-generated from the summary. Perfect for students preparing for exams.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔊</div>
+      <div class="feature-title">Text to Speech</div>
+      <div class="feature-desc">Listen to the summary with sentence-by-sentence highlighting and auto-scroll. Hands-free reading.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎬</div>
+      <div class="feature-title">Summary Slideshow</div>
+      <div class="feature-desc">Watch your summary as an animated slideshow. Each sentence displayed as a cinematic slide.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <div class="feature-title">Novel Search</div>
+      <div class="feature-desc">Search and analyze any of 60,000+ Project Gutenberg novels instantly by name. No upload needed.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📚</div>
+      <div class="feature-title">Personal Library</div>
+      <div class="feature-desc">Save analyzed novels to your library. Like and bookmark your favorites. Access anytime from dashboard.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta">
+  <h2>Ready to read smarter?</h2>
+  <p>Join BookEase and analyze your first novel in under 30 seconds.</p>
+  <a href="/register" class="cta-btn">Create Free Account →</a>
+</div>
+
+<footer>
+  © 2024 BookEase — Smart Novel Summarization System
+</footer>
+
+</body>
+</html>

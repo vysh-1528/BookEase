@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>BookEase — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=DM+Mono:wght@400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --ink: #1a1208; --cream: #f5ede0; --paper: #faf6ef; --amber: #c8860a; --muted: #7a6a55; --border: #d9cbb8; --red: #c0392b; --sage: #5a7a5c; }
+  body {
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(rgba(250,246,239,0.92), rgba(250,246,239,0.92)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='%23f5ede0'/%3E%3Crect x='10' y='10' width='45' height='60' rx='3' fill='%23c8860a' opacity='0.15'/%3E%3Crect x='12' y='12' width='41' height='56' rx='2' fill='%23fff' opacity='0.5'/%3E%3Cline x1='15' y1='20' x2='50' y2='20' stroke='%23c8860a' stroke-width='1' opacity='0.3'/%3E%3Cline x1='15' y1='25' x2='50' y2='25' stroke='%23c8860a' stroke-width='1' opacity='0.3'/%3E%3Cline x1='15' y1='30' x2='40' y2='30' stroke='%23c8860a' stroke-width='1' opacity='0.3'/%3E%3Crect x='65' y='30' width='45' height='60' rx='3' fill='%231a1208' opacity='0.1'/%3E%3Crect x='67' y='32' width='41' height='56' rx='2' fill='%23fff' opacity='0.5'/%3E%3Cline x1='70' y1='42' x2='105' y2='42' stroke='%231a1208' stroke-width='1' opacity='0.2'/%3E%3Cline x1='70' y1='47' x2='105' y2='47' stroke='%231a1208' stroke-width='1' opacity='0.2'/%3E%3Cline x1='70' y1='52' x2='90' y2='52' stroke='%231a1208' stroke-width='1' opacity='0.2'/%3E%3C/svg%3E");
+    background-size: 120px 120px;
+  }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1rem 3rem; background: var(--ink); color: var(--cream); }
+  .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; text-decoration: none; color: var(--cream); }
+  .logo span { color: var(--amber); }
+  .admin-badge { background: var(--amber); color: var(--ink); padding: 0.2rem 0.6rem; border-radius: 2px; font-size: 0.75rem; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .btn-sm { padding: 0.45rem 1rem; background: rgba(255,255,255,0.15); color: var(--cream); border: 1px solid rgba(255,255,255,0.2); cursor: pointer; font-size: 0.85rem; border-radius: 2px; text-decoration: none; transition: all 0.2s; }
+  .btn-sm:hover { background: rgba(255,255,255,0.25); }
+  .page { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+  .stat-card { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; text-align: center; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--ink); }
+  .stat-label { font-size: 0.78rem; color: var(--muted); font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.3rem; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+  .alert { padding: 0.75rem 1rem; border-radius: 3px; margin-bottom: 1.5rem; font-size: 0.875rem; }
+  .alert-success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+  .alert-error { background: #fde8e8; border: 1px solid #f5c6c6; color: #c0392b; }
+  table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 2.5rem; }
+  thead { background: var(--ink); color: var(--cream); }
+  th { padding: 0.9rem 1rem; text-align: left; font-size: 0.78rem; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+  td { padding: 0.85rem 1rem; font-size: 0.875rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(200,134,10,0.03); }
+  .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 2px; font-size: 0.7rem; font-weight: 600; font-family: 'DM Mono', monospace; }
+  .badge-admin { background: rgba(200,134,10,0.15); color: var(--amber); border: 1px solid rgba(200,134,10,0.3); }
+  .badge-user { background: rgba(90,122,92,0.1); color: var(--sage); border: 1px solid rgba(90,122,92,0.3); }
+  .delete-btn { padding: 0.35rem 0.8rem; background: rgba(192,57,43,0.1); color: var(--red); border: 1px solid rgba(192,57,43,0.3); border-radius: 2px; cursor: pointer; font-size: 0.78rem; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .delete-btn:hover { background: var(--red); color: #fff; }
+  .novel-summary-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 0.8rem; }
+  @media(max-width:800px) { .stats-row { grid-template-columns: 1fr 1fr; } nav { padding: 1rem 1.5rem; } }
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">📖 Book<span>Ease</span></a>
+  <div class="nav-right">
+    <span class="admin-badge">ADMIN</span>
+    <a href="/" class="btn-sm">← Home</a>
+    <a href="/logout" class="btn-sm">Logout</a>
+  </div>
+</nav>
+<div class="page">
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num">{{ users | length }}</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ novels | length }}</div>
+      <div class="stat-label">Total Novels</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ novels | selectattr('like_count') | list | length }}</div>
+      <div class="stat-label">Liked Novels</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ users | selectattr('is_admin') | list | length }}</div>
+      <div class="stat-label">Admins</div>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- USERS TABLE -->
+  <div class="section-title">👥 All Users</div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Joined</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td><span style="font-family:'DM Mono',monospace;color:var(--muted)">#{{ user.id }}</span></td>
+        <td><strong>{{ user.name }}</strong></td>
+        <td>{{ user.email }}</td>
+        <td>
+          {% if user.is_admin %}
+          <span class="badge badge-admin">Admin</span>
+          {% else %}
+          <span class="badge badge-user">User</span>
+          {% endif %}
+        </td>
+        <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted)">
+          {{ user.created_at.strftime('%b %d, %Y') }}
+        </td>
+        <td>
+          {% if not user.is_admin %}
+          <form method="POST" action="/admin/delete_user/{{ user.id }}"
+            onsubmit="return confirm('Delete user {{ user.name }}? This will delete all their novels too!')">
+            <button type="submit" class="delete-btn">🗑 Delete</button>
+          </form>
+          {% else %}
+          <span style="font-size:0.75rem;color:var(--muted)">Protected</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- NOVELS TABLE -->
+  <div class="section-title">📚 All Novels</div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>User</th>
+        <th>Mood</th>
+        <th>Likes</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for novel in novels %}
+      <tr>
+        <td><span style="font-family:'DM Mono',monospace;color:var(--muted)">#{{ novel.id }}</span></td>
+        <td><strong>{{ novel.title }}</strong></td>
+        <td>{{ novel.user_name }}</td>
+        <td>{% if novel.mood %}<span style="font-size:0.85rem">{{ novel.mood }}</span>{% endif %}</td>
+        <td style="font-family:'DM Mono',monospace">❤️ {{ novel.like_count }}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--muted)">
+          {{ novel.created_at.strftime('%b %d, %Y') }}
+        </td>
+        <td>
+          <form method="POST" action="/admin/delete_novel/{{ novel.id }}"
+            onsubmit="return confirm('Delete novel {{ novel.title }}?')">
+            <button type="submit" class="delete-btn">🗑 Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
